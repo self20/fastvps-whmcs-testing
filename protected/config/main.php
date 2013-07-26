@@ -7,7 +7,7 @@
 // CWebApplication properties can be configured here.
 return array(
 	'basePath'=>dirname(__FILE__).DIRECTORY_SEPARATOR.'..',
-	'name'=>'My Web Application',
+	'name'=>'Currency Rates',
 
 	// preloading 'log' component
 	'preload'=>array('log'),
@@ -48,7 +48,10 @@ return array(
 		),
 		*/
 		'db'=>array(
-			'connectionString' => 'sqlite:'.dirname(__FILE__).'/../data/testdrive.db',
+			'connectionString' => 'mysql:host=localhost;dbname=fastvps_whmcs_testing',
+			'username'         => 'root',
+			'password'         => '',
+			'charset'          => 'utf8',
 		),
 		// uncomment the following to use a MySQL database
 		/*
