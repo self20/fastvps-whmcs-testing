@@ -4,7 +4,7 @@
 $this->pageTitle=Yii::app()->name;
 
 Yii::app()->clientScript->registerCoreScript('jquery');
-Yii::app()->clientScript->registerScriptFile('/js/rates.js');
+Yii::app()->clientScript->registerScriptFile('js/rates.js');
 ?>
 
 <div class="rates-controls">
