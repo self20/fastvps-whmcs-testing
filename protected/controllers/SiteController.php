@@ -41,6 +41,8 @@ class SiteController extends Controller
 	 */
 	public function actionUpdateRatesAjax($renew=NULL)
 	{
+		header('Cache-Control: no-cache, must-revalidate');
+		
 		$json = array(
 			'success' => false,
 		);
@@ -100,6 +102,8 @@ class SiteController extends Controller
 	 */
 	public function actionAddRateAjax($char_code=NULL)
 	{
+		header('Cache-Control: no-cache, must-revalidate');
+
 		$rate = Rate::model()->findByAttributes(array('char_code' => $char_code));
 
 		if (($rate instanceof Rate) && $rate->addToSelected())
@@ -120,6 +124,8 @@ class SiteController extends Controller
 	 */
 	public function actionRemoveRateAjax($char_code=NULL)
 	{
+		header('Cache-Control: no-cache, must-revalidate');
+
 		$rate = Rate::model()->findByAttributes(array('char_code' => $char_code));
 
 		if (($rate instanceof Rate) && $rate->removeFromSelected())
