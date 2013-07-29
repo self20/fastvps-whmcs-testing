@@ -1,5 +1,5 @@
-DROP DATABASE IF EXISTS fastvps_whmcs_testing;
-CREATE DATABASE fastvps_whmcs_testing CHARACTER SET utf8 COLLATE utf8_general_ci;
+-- DROP DATABASE IF EXISTS fastvps_whmcs_testing;
+-- CREATE DATABASE fastvps_whmcs_testing CHARACTER SET utf8 COLLATE utf8_general_ci;
 
 USE fastvps_whmcs_testing;
 
@@ -12,10 +12,10 @@ CREATE TABLE tbl_rates (
 	nominal INTEGER NOT NULL DEFAULT 1,
 	name VARCHAR(254) NOT NULL,
 	value FLOAT NOT NULL
-);
+) CHARACTER SET utf8 COLLATE utf8_general_ci;
 
 CREATE TABLE tbl_selected_rates (
 	char_code VARCHAR(3) PRIMARY KEY
-);
+) CHARACTER SET utf8 COLLATE utf8_general_ci;
 
 INSERT INTO tbl_selected_rates (char_code) VALUES ('EUR'), ('USD'), ('UAH'), ('BYR');
