@@ -27,19 +27,75 @@ class SiteController extends Controller
 	 */
 	public function actionIndex()
 	{
-		$rates = SelectedRate::model()->findAll();
-		$this->render('index', array(
-			'rates' => CHtml::listData($rates, 'id', 'rate'),
-		));
+		$this->render('index');
+	}
+
+	/**
+	 * actionGetRatesAjax 
+	 * 
+	 * @param mixed $id 
+	 * @return void
+	 */
+	public function actionGetRatesAjax($id=NULL)
+	{
+		header('Cache-Control: no-cache, must-revalidate');
+
+		// Get any selected or all rates
+		if ($id !== NULL)
+		{
+			$criteria = new CDbCriteria();
+			if (!is_array($id))
+			{
+				$criteria->addCondition('remote_id = :remote_id');
+				$criteria->params = array(':remote_id'=> (string)$id);
+			}
+			else
+			{
+				$criteria->addInCondition('remote_id', $id);
+			}
+
+			$rates = Rate::model()->findAll($criteria);
+		}
+		else
+		{
+			$rates = Rate::model()->findAll();
+		}
+
+		$json = array(
+			'success' => true,
+			'rates' => array(),
+			'count' => count($rates),
+		);
+
+		if (count($rates) > 0)
+		{
+			foreach($rates as $rate)
+			{
+				$json['rates'][$rate->remote_id] = array(
+					'remote_id' => $rate->remote_id,
+					'char_code' => $rate->char_code,
+					'name'      => $rate->name,
+					'nominal'   => (int)$rate->nominal,
+					'value'     => $rate->value,
+					'selected'  => (bool)$rate->selected,
+				);
+			}
+
+			uasort($json['rates'], function ($a, $b) {
+				return strcmp($a['name'], $b['name']);
+			});
+		}
+
+		echo json_encode($json);
 	}
 
 	/**
 	 * actionUpdateRatesAjax 
 	 * 
-	 * @access public
+	 * @param mixed $id
 	 * @return void
 	 */
-	public function actionUpdateRatesAjax($renew=NULL)
+	public function actionUpdateRatesAjax($id=NULL)
 	{
 		header('Cache-Control: no-cache, must-revalidate');
 		
@@ -47,99 +103,54 @@ class SiteController extends Controller
 			'success' => false,
 		);
 
-		$criteria = new CDbCriteria();
-		$criteria->addCondition('`date` > :date');
-		$criteria->params = array(
-				':date' => date('Y-m-d 00:00:00', strtotime('-1 day')),
-		);
-
-		// Renew on request or if current day rates not exists
-		$rates = Rate::model()->findAll($criteria);
-
-		if (($renew == '1') || (count($rates) == 0))
+		$cbr = new ProviderCBR();
+		if (is_string($id))
 		{
-			$cbr = new ProviderCBR();
-			$json['success'] = $cbr->renewRates();
-
-			$rates = Rate::model()->findAll($criteria);
+			$id = preg_replace('/[^A-Z0-9]+/', '', $id);
+			$rate = Rate::model()->findByAttributes(array('remote_id' => $id));
+			if ($rate instanceof Rate)
+			{
+				$json['success'] = $cbr->renewRate($rate);
+				$json['errors'] = $cbr->getErrors();
+			}
+			else
+			{
+				$json['errors'] = array('Валюта с идентификатором "' . $id . '" не найдена.');
+			}
 		}
 		else
 		{
-			$json['success'] = true;
+			$json['success'] = $cbr->renewAllRates();
+			$json['errors'] = $cbr->getErrors();
 		}
-
-		$currentRates = CHtml::listData(SelectedRate::model()->findAll(), 'char_code', 'rate');
-
-		// Make controls for unselected rates
-		$unselectedRates = array(
-			'<select name="char_code" onchange="javascript: add_to_selected()">',
-			'<option value="" selected>Выберите валюту для отображения в списке...</option>',
-		);
-		foreach($rates as $rate)
-		{
-			if (!in_array($rate->id, CHtml::listData($currentRates, 'id', 'id')))
-			{
-				$unselectedRates[] = '<option value="' . $rate->char_code . '">' . $rate->char_code . ' - ' . $rate->name . '</option>';
-			}
-		}
-		$unselectedRates[] = '</select>';
-		$json['addlist'] = implode("\n", $unselectedRates);
-
-		// Render table of currency rates
-		$json['html'] = $this->renderPartial('_rates', array(
-			'rates' => $currentRates, 
-		), true);
 
 		echo json_encode($json);
 	}
 
 	/**
-	 * actionAddRateAjax 
+	 * actionSetRateSelected 
 	 * 
-	 * @param mixed $id 
-	 * @access public
+	 * @param mixed $id
+	 * @param string $select
 	 * @return void
 	 */
-	public function actionAddRateAjax($char_code=NULL)
+	public function actionSetRateSelected($id = NULL, $select = '1')
 	{
 		header('Cache-Control: no-cache, must-revalidate');
 
-		$rate = Rate::model()->findByAttributes(array('char_code' => $char_code));
-
-		if (($rate instanceof Rate) && $rate->addToSelected())
+		$id = preg_replace('/[^A-Z0-9]+/', '', $id);
+		$rate = Rate::model()->findByAttributes(array('remote_id' => $id));
+		if ($rate instanceof Rate)
 		{
-			echo json_encode(array('success' => true));
-			return;
+			$rate->attributes = array(
+				'selected' => (($select == '1') ? 1 : 0),
+			);
+
+			echo json_encode(array('success' => $rate->save()));
 		}
-
-		echo json_encode(array('success' => false));
-	}
-
-	/**
-	 * actionRemoveRateAjax 
-	 * 
-	 * @param mixed $id 
-	 * @access public
-	 * @return void
-	 */
-	public function actionRemoveRateAjax($char_code=NULL)
-	{
-		header('Cache-Control: no-cache, must-revalidate');
-
-		$rate = Rate::model()->findByAttributes(array('char_code' => $char_code));
-
-		if (($rate instanceof Rate) && $rate->removeFromSelected())
+		else
 		{
-			echo json_encode(array('success' => true));
-			return;
+			echo json_encode(array('success' => false, 'errors' => array('Валюта не найдена в базе данных')));
 		}
-
-		$json = array('success' => false);
-		if (count(SelectedRate::model()->findAll()) <= 1)
-		{
-			$json['message'] = 'Невозможно удалить единственную валюту в списке. Замените ее другой.';
-		}
-
-		echo json_encode($json);
 	}
 }

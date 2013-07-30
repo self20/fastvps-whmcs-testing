@@ -230,22 +230,19 @@ div.search-form
 
 
 #rates-content .rates-loading { width: 100%; text-align: center; }
-#rates-content .rates .rate { width: 90%; height: 24px; margin: auto; }
-#rates-content .rates .rate.rate-headers { font-weight: bold; height: 28px; }
+#rates-content .rates .rate { width: 90%; height: 24px; margin: auto; display: table; }
+
+#rates-content .rates .rate.rate-headers { font-weight: bold; height: 28px; font-size: 14px; }
+#rates-content .rates .rate.rate-headers div { height: 28px; vertical-align: center; padding-top: 3px; }
+#rates-content .rates .rate.rate-headers .control { font-size: 12px; padding-top: 0px; }
+
 #rates-content .rates .rate div { float: left; }
+#rates-content .rates .rate .nominal { width: 10%; text-align: right; }
 #rates-content .rates .rate .name { width: 35%; }
 #rates-content .rates .rate .char-code { width: 20%; }
-#rates-content .rates .rate .nominal { width: 10%; }
 #rates-content .rates .rate .value { width: 15%; }
 #rates-content .rates .rate .control { width: 20%; text-align: right; }
 
-.rates-controls { width: 90%; height: 30px; margin: auto; }
-.rates-controls .add-rates,
-.rates-controls .renew-rates
-{
-	float: right;
-}
-.rates-controls .renew-rates { margin-left: 10px }
-.rates-controls .selected-rates { margin: 20px 0 20px 0; }
-.rates-controls .selected-rates { margin: 20px 0 20px 0; }
+#rates-list label { display:block; cursor: pointer; }
 
+.rates-controls { width: 90%; margin: auto; }

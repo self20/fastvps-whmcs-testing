@@ -6,6 +6,7 @@
 		{
 			return parent::model($className);
 		}
+
 		/**
 		 * tableName 
 		 * 
@@ -32,9 +33,28 @@
 				'nominal'        => 'Номинал',
 				'name'           => 'Наименование валюты',
 				'value'          => 'Стоимость',
+				'selected'       => 'В списке',
 			);
 		}
 
+		/**
+		 * scopes 
+		 * 
+		 * @return array
+		 */
+		public function scopes()
+		{
+			return array(
+				'selected'   => array('condition' => 'selected = 1'),
+				'unselected' => array('condition' => 'selected = 0'),
+			);
+		}
+
+		/**
+		 * rules 
+		 * 
+		 * @return rules
+		 */
 		public function rules()
 		{
 			return array(
@@ -43,69 +63,17 @@
 				array('nominal', 'numerical', 'min'=>1),
 				array('name', 'length', 'min'=>1, 'max'=>254),
 				array('value', 'numerical', 'integerOnly'=>false),
+				array('selected', 'numerical', 'integerOnly'=>true),
 			);
 		}
 
+		/**
+		 * relations 
+		 * 
+		 * @return array
+		 */
 		public function relations()
 		{
-			return array(
-				'selected' => array(self::BELONGS_TO, 'SelectedRate', 'char_code'),
-			);
-		}
-
-		/**
-		 * isSelected 
-		 * 
-		 * @return boolean
-		 */
-		public function isSelected()
-		{
-			return ($this->selected instanceof SelectedRate);
-		}
-
-		/**
-		 * addToSelected 
-		 * 
-		 * @return boolean
-		 */
-		public function addToSelected()
-		{
-			if ($this->isNewRecord)
-			{
-				return FALSE;
-			}
-
-			if ($this->isSelected())
-			{
-				return TRUE;
-			}
-
-			$selectedRate = new SelectedRate();
-			$selectedRate->attributes = array(
-				'char_code' => $this->char_code,
-			);
-
-			return $selectedRate->save();
-		}
-
-		/**
-		 * removeFromSelected 
-		 * 
-		 * @return boolean
-		 */
-		public function removeFromSelected()
-		{
-			$currentRates = CHtml::listData(SelectedRate::model()->findAll(), 'char_code', 'rate');
-			if ($this->isNewRecord || (count($currentRates) <= 1))
-			{
-				return FALSE;
-			}
-
-			if (!$this->isSelected())
-			{
-				return TRUE;
-			}
-
-			return $this->selected->delete();
+			return array();
 		}
 	}
