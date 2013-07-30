@@ -89,7 +89,7 @@ class ProviderCBR
 		try
 		{
 			$xml = new SimpleXMLElement($res);
-			if ($xml->Valute == NULL)
+			if (!isset($xml->Valute))
 			{
 				$this->errors[] = 'Ответ не соответствует обрабатываемой структуре данных.';
 				return FALSE;
@@ -122,7 +122,12 @@ class ProviderCBR
 				if (!$rate->save())
 				{
 					$this->errors[] = 'Ошибка при сохранении влюты (' . $rate->remote_id . ')';
-					Yii::log('errors', 'Ошибка при сохранении валюты: ' . implode("\n", $rate->getErrors()));
+					$model_errors = array();
+					foreach($rate->getErrors() as $errors)
+					{
+						$model_errors[] = implode("\n", $errors);
+					}
+					Yii::log('errors', 'Ошибка при сохранении валюты: ' . implode("\n", $model_errors));
 					return FALSE;
 				}
 			}
@@ -159,7 +164,7 @@ class ProviderCBR
 		{
 			$xml = new SimpleXMLElement($res);
 
-			if ($xml->Record != NULL)
+			if (isset($xml->Record))
 			{
 				$rate->attributes = array(
 					'date'    => date('Y-m-d 00:00:00'),
@@ -174,7 +179,12 @@ class ProviderCBR
 				else
 				{
 					$this->errors[] = 'Произошла ошибка при сохранении данных о валюте. Ошибка записана в лог.';
-					Yii::log('error', implode("\n", $rate->getErrors()));
+					$model_errors = array();
+					foreach($rate->getErrors() as $errors)
+					{
+						$model_errors[] = implode("\n", $errors);
+					}
+					Yii::log('errors', 'Ошибка при сохранении валюты: ' . implode("\n", $model_errors));
 				}
 			}
 			else
